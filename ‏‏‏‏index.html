@@ -2,8 +2,11 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <base href="./">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Email Bot - המזכירה החכמה שלך</title>
+    
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -47,6 +50,13 @@
     </style>
 </head>
 <body>
+    <noscript>
+        <div style="text-align: center; padding: 50px; font-family: sans-serif;">
+            <h1>יש להפעיל JavaScript כדי לצפות באתר זה</h1>
+            <p>האתר שלנו מבוסס על טכנולוגיית בינה מלאכותית הדורשת דפדפן עם יכולות הרצה של סקריפטים.</p>
+        </div>
+    </noscript>
+
     <div id="root"></div>
 
     <script type="text/babel">
@@ -155,7 +165,7 @@
 
         const ContactPage = ({ onBack }) => {
             const [submitted, setSubmitted] = useState(false);
-
+            
             return (
                 <motion.div 
                     initial={{ opacity: 0, x: 100 }}
@@ -177,8 +187,9 @@
                                 <h2 className="text-4xl font-black text-slate-900 mb-4 text-center">בואו נצא לדרך! 🚀</h2>
                                 <p className="text-slate-500 text-center mb-12 text-lg">השאירו פרטים ונחזור אליכם עם כל המידע על התקנה והדרכה.</p>
                                 
-                                <form action="https://formsubmit.co/mytovmail@gmail.com" method="POST" className="space-y-6" onSubmit={() => setTimeout(() => setSubmitted(true), 500)}>
-				     <input type="hidden" name="_captcha" value="false" />
+                                <form action="https://formsubmit.co/yourname@email.com" method="POST" className="space-y-6">
+                                    <input type="hidden" name="_captcha" value="false" />
+                                    
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-slate-700 font-bold mb-2 mr-2">שם מלא</label>
@@ -379,7 +390,7 @@
                                     whileHover={{ y: -10 }}
                                     className="text-center p-8 rounded-3xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:card-shadow transition-all duration-300"
                                 >
-                                    <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                    <div className={`w-20 h-20 bg-${feature.color}-50 text-${feature.color}-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner`}>
                                         <feature.icon />
                                     </div>
                                     <h3 className="text-2xl font-bold mb-4 text-slate-800">{feature.title}</h3>
@@ -458,7 +469,7 @@
                                         <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
                                             <Icons.FileText />
                                         </div>
-                                        <div className="text-right">
+                                        <div className="text-right md:text-right">
                                             <div className="font-bold">סקרנים לראות איך זה עובד?</div>
                                             <div className="text-sm opacity-70">הצצה לקובץ ההגדרות לדוגמה של הבוט</div>
                                         </div>
@@ -509,28 +520,31 @@
                         />
                         <FAQItem 
                             question="כמה זה עולה?" 
-                            answer="השימוש בבוט עצמו הוא חינמי לגמרי. התשלום הוא חד-פעמי ורק על ההתקנה וההדרכה שאנחנו נותנים לך."
+                            answer="השימוש בבוט עצמו הוא חינמי לגמרי (כן, כן, על בסיס התוכנית החינמית של גוגל!). התשלום הוא חד-פעמי ורק על ההתקנה וההדרכה שאנחנו נותנים לך כדי שתהיה/י מומחה/ית בלהפעיל אותו."
                         />
                     </div>
                 </section>
 
-                <section className="py-32 px-8 relative overflow-hidden text-center">
-                    <motion.h2 
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
-                        viewport={{ once: true }}
-                        className="text-5xl md:text-6xl font-black mb-10 leading-tight"
-                    >
-                        מוכנים להחזיר לעצמכם <br /> <span className="text-blue-600">שעתיים בכל יום?</span>
-                    </motion.h2>
-                    <motion.button 
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={onGoToContact}
-                        className="bg-blue-600 text-white px-16 py-8 rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all mb-8"
-                    >
-                        התקנה והדרכה עכשיו
-                    </motion.button>
+                <section className="py-32 px-8 relative overflow-hidden">
+                    <div className="max-w-4xl mx-auto text-center relative z-10">
+                        <motion.h2 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            viewport={{ once: true }}
+                            className="text-5xl md:text-6xl font-black mb-10 leading-tight"
+                        >
+                            מוכנים להחזיר לעצמכם <br /> <span className="text-blue-600">שעתיים בכל יום?</span>
+                        </motion.h2>
+                        <motion.button 
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onGoToContact}
+                            className="bg-blue-600 text-white px-16 py-8 rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all mb-8"
+                        >
+                            התקנה והדרכה עכשיו
+                        </motion.button>
+                        <p className="text-slate-400 font-medium text-lg">בוט AI עוצמתי במייל שלך - במינימום מאמץ.</p>
+                    </div>
                 </section>
             </motion.div>
         );
