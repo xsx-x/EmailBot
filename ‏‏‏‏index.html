@@ -2,16 +2,16 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <base href="./">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Email Bot - המזכירה החכמה שלך</title>
     
     <!-- Scripts -->
+    <!-- הוספנו הגדרות כדי למנוע חסימות אבטחה בדפדפנים מסוימים -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
@@ -61,7 +61,8 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { motion, AnimatePresence } = window.Motion;
+        // בדיקה שהספרייה נטענה כראוי
+        const { motion, AnimatePresence } = window.Motion || { motion: { div: 'div', button: 'button', span: 'span', h2: 'h2' }, AnimatePresence: ({children}) => children };
 
         const Icons = {
             Sparkles: () => (
@@ -187,7 +188,8 @@
                                 <h2 className="text-4xl font-black text-slate-900 mb-4 text-center">בואו נצא לדרך! 🚀</h2>
                                 <p className="text-slate-500 text-center mb-12 text-lg">השאירו פרטים ונחזור אליכם עם כל המידע על התקנה והדרכה.</p>
                                 
-                                <form action="https://formsubmit.co/yourname@email.com" method="POST" className="space-y-6">
+                                {/* חשוב: החלף את המייל למטה למייל שלך */}
+                                <form action="https://formsubmit.co/mytovmail@gmail.com" method="POST" className="space-y-6">
                                     <input type="hidden" name="_captcha" value="false" />
                                     
                                     <div className="grid md:grid-cols-2 gap-6">
@@ -317,7 +319,7 @@
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => {
                                         const el = document.getElementById('how-it-works');
-                                        el.scrollIntoView({ behavior: 'smooth' });
+                                        if (el) el.scrollIntoView({ behavior: 'smooth' });
                                     }}
                                     className="bg-white text-slate-800 px-10 py-5 rounded-3xl font-bold text-lg card-shadow hover:bg-slate-50 transition-all border border-slate-100"
                                 >
@@ -596,7 +598,8 @@
             );
         };
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
