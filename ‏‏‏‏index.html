@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Email Bot - המזכירה החכמה שלך</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .soft-gradient {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        .blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.1) 100%);
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        const Icons = {
+            Sparkles: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+            ),
+            Coffee: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>
+            ),
+            Smile: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>
+            ),
+            Mail: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            ),
+            ArrowLeft: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            ),
+            ChevronDown: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            ),
+            Shield: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            ),
+            FileText: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+            ),
+            Send: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            )
+        };
+
+        const FloatingEmail = ({ sender, text, delay, position }) => (
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.8, x: position === 'left' ? -50 : 50 }}
+                animate={{ 
+                    opacity: 1, 
+                    scale: 1, 
+                    x: 0,
+                    y: [0, -10, 0] 
+                }}
+                transition={{ 
+                    delay, 
+                    duration: 0.8, 
+                    type: "spring",
+                    y: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+                }}
+                className="bg-white p-4 rounded-2xl card-shadow border border-slate-100 flex gap-4 items-start max-w-sm mb-4"
+            >
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                    <Icons.Mail />
+                </div>
+                <div>
+                    <div className="font-bold text-sm text-slate-800">{sender}</div>
+                    <div className="text-sm text-slate-500 line-clamp-2">{text}</div>
+                </div>
+            </motion.div>
+        );
+
+        const FAQItem = ({ question, answer, isSpecial = false }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            return (
+                <motion.div 
+                    layout
+                    className={`faq-item rounded-2xl border mb-4 overflow-hidden card-shadow transition-all ${
+                        isSpecial ? 'bg-amber-50 border-amber-100' : 'bg-white border-slate-100'
+                    } ${isOpen ? 'ring-2 ring-blue-200' : ''}`}
+                    whileHover={{ scale: 1.01 }}
+                >
+                    <button 
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="w-full px-6 py-5 flex items-center justify-between text-right"
+                    >
+                        <div className="flex items-center gap-3">
+                            {isSpecial && <span className="text-amber-600"><Icons.Shield /></span>}
+                            <span className={`font-bold text-lg leading-snug ${isSpecial ? 'text-amber-900' : 'text-slate-800'}`}>
+                                {question}
+                            </span>
+                        </div>
+                        <motion.div 
+                            animate={{ rotate: isOpen ? 180 : 0 }}
+                            className={`${isSpecial ? 'text-amber-500' : 'text-blue-500'} shrink-0 mr-4`}
+                        >
+                            <Icons.ChevronDown />
+                        </motion.div>
+                    </button>
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className={`px-6 pb-6 leading-relaxed text-md ${isSpecial ? 'text-amber-800/80' : 'text-slate-600'}`}
+                            >
+                                {answer}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+            );
+        };
+
+        const ContactPage = ({ onBack }) => {
+            const [submitted, setSubmitted] = useState(false);
+
+            return (
+                <motion.div 
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    className="max-w-4xl mx-auto px-8 py-12"
+                >
+                    <button 
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-blue-600 font-bold mb-8 hover:opacity-70 transition-opacity"
+                    >
+                        <Icons.ArrowLeft style={{ transform: 'rotate(180deg)' }} />
+                        חזרה לדף הבית
+                    </button>
+
+                    <div className="bg-white rounded-[3rem] p-10 md:p-16 border border-slate-100 card-shadow">
+                        {!submitted ? (
+                            <>
+                                <h2 className="text-4xl font-black text-slate-900 mb-4 text-center">בואו נצא לדרך! 🚀</h2>
+                                <p className="text-slate-500 text-center mb-12 text-lg">השאירו פרטים ונחזור אליכם עם כל המידע על התקנה והדרכה.</p>
+                                
+                                <form action="https://formsubmit.co/mytovmail@gmail.com" method="POST" className="space-y-6" onSubmit={() => setTimeout(() => setSubmitted(true), 500)}>
+				     <input type="hidden" name="_captcha" value="false" />
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-slate-700 font-bold mb-2 mr-2">שם מלא</label>
+                                            <input 
+                                                type="text" 
+                                                name="name"
+                                                required
+                                                placeholder="איך קוראים לך?"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-slate-700 font-bold mb-2 mr-2">כתובת מייל</label>
+                                            <input 
+                                                type="email" 
+                                                name="email"
+                                                required
+                                                placeholder="mail@example.com"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-slate-700 font-bold mb-2 mr-2">טלפון (אופציונלי)</label>
+                                        <input 
+                                            type="tel" 
+                                            name="phone"
+                                            placeholder="כדי שנוכל לסמס לך"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-slate-700 font-bold mb-2 mr-2">ספר לנו קצת על העסק (אופציונלי)</label>
+                                        <textarea 
+                                            name="message"
+                                            rows="4"
+                                            placeholder="מה הבוט יעשה עבורך?"
+                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 transition-all"
+                                        ></textarea>
+                                    </div>
+                                    
+                                    <input type="hidden" name="_subject" value="פנייה חדשה מאתר הבוט!" />
+                                    <input type="hidden" name="_next" value={window.location.href} />
+
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        type="submit"
+                                        className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-blue-100 flex items-center justify-center gap-3"
+                                    >
+                                        שלח פנייה
+                                        <Icons.Send />
+                                    </motion.button>
+                                </form>
+                            </>
+                        ) : (
+                            <motion.div 
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="text-center py-12"
+                            >
+                                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
+                                    <Icons.Smile />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 mb-4">ההודעה נשלחה בהצלחה!</h3>
+                                <p className="text-slate-500 text-lg mb-8">תודה רבה! אנחנו נעבור על הפרטים ונחזור אליך בהקדם האפשרי.</p>
+                                <button 
+                                    onClick={onBack}
+                                    className="text-blue-600 font-bold border-b-2 border-blue-600 pb-1"
+                                >
+                                    חזרה לדף הראשי
+                                </button>
+                            </motion.div>
+                        )}
+                    </div>
+                </motion.div>
+            );
+        };
+
+        const LandingPage = ({ onGoToContact }) => (
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+            >
+                <main className="max-w-7xl mx-auto px-8 pt-12 pb-24 relative">
+                    <div className="blob -top-20 -right-20" />
+                    <div className="blob bottom-0 -left-20 opacity-50" />
+
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="inline-block px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-bold mb-6"
+                            >
+                                העתיד של שירות הלקוחות כבר כאן ✨
+                            </motion.div>
+                            <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-tight mb-6">
+                                פחות מיילים, <br />
+                                <span className="text-blue-600">יותר זמן פנוי.</span>
+                            </h1>
+                            <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-lg">
+                                הכירו את העוזר האישי החדש שלכם. הוא עונה למיילים, מסדר פגישות ונותן תשובות מדויקות – הכל באופן אוטומטי ובשפה שלכם.
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <motion.button 
+                                    whileHover={{ scale: 1.05, backgroundColor: "#1d4ed8" }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={onGoToContact}
+                                    className="bg-blue-600 text-white px-10 py-5 rounded-3xl font-black text-lg shadow-2xl shadow-blue-200 flex items-center justify-center gap-2 group transition-colors"
+                                >
+                                    בואו נתחיל
+                                    <motion.span animate={{ x: [-4, 0, -4] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                                        <Icons.ArrowLeft />
+                                    </motion.span>
+                                </motion.button>
+                                <motion.button 
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => {
+                                        const el = document.getElementById('how-it-works');
+                                        el.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="bg-white text-slate-800 px-10 py-5 rounded-3xl font-bold text-lg card-shadow hover:bg-slate-50 transition-all border border-slate-100"
+                                >
+                                    איך זה עובד?
+                                </motion.button>
+                            </div>
+                        </motion.div>
+
+                        <div className="relative">
+                            <FloatingEmail 
+                                sender="לקוח מתעניין" 
+                                text="שלום, האם יש לכם פגישה פנויה ביום חמישי בבוקר?" 
+                                delay={0.2} 
+                                position="left"
+                            />
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ 
+                                    opacity: 1, 
+                                    scale: 1,
+                                    y: [0, -5, 0] 
+                                }}
+                                transition={{ 
+                                    delay: 1, 
+                                    type: "spring",
+                                    y: { repeat: Infinity, duration: 3, ease: "easeInOut" }
+                                }}
+                                className="bg-blue-600 p-6 rounded-3xl shadow-2xl text-white max-w-sm mr-auto relative z-10 my-4"
+                            >
+                                <div className="flex items-center gap-2 mb-3 font-bold text-xs uppercase tracking-wider opacity-90">
+                                    <Icons.Sparkles />
+                                    המערכת משיבה ברגע זה
+                                </div>
+                                <div className="text-md font-medium leading-relaxed">היי! בטח, יש לנו פגישה פנויה בשעה 10:00. האם תרצה שאשריין לך אותה?</div>
+                            </motion.div>
+                            <FloatingEmail 
+                                sender="שותף עסקי" 
+                                text="שלחתי לך את החוזה המעודכן, אשמח לאישור סופי עד הערב." 
+                                delay={0.6} 
+                                position="right"
+                            />
+                        </div>
+                    </div>
+                </main>
+
+                <section className="bg-white py-24 px-8">
+                    <div className="max-w-7xl mx-auto">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="text-center mb-20"
+                        >
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">למה אתם חייבים כזה?</h2>
+                            <p className="text-xl text-slate-500">חוסכים זמן, נותנים שירות מעולה ומגדילים את העסק.</p>
+                        </motion.div>
+
+                        <div className="grid md:grid-cols-3 gap-12">
+                            {[
+                                { icon: Icons.Smile, title: "שירות מהיר ומדויק", desc: "הלקוחות שלכם מקבלים מענה תוך דקות, לא ימים. שירות ברמה של VIP לכל לקוח.", color: "blue" },
+                                { icon: Icons.Coffee, title: "חזרה לשפיות", desc: "סיימו עם מרתון המיילים. הבוט מטפל בשאלות נפוצות ומשאיר לכם רק את הדברים החשובים.", color: "pink" },
+                                { icon: Icons.Sparkles, title: "בינה מלאכותית כחול-לבן", desc: "המערכת מבינה עברית לעומק, כולל סלנג והקשרים עסקיים מורכבים.", color: "purple" }
+                            ].map((feature, i) => (
+                                <motion.div 
+                                    key={i}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.2 }}
+                                    whileHover={{ y: -10 }}
+                                    className="text-center p-8 rounded-3xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:card-shadow transition-all duration-300"
+                                >
+                                    <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                                        <feature.icon />
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-4 text-slate-800">{feature.title}</h3>
+                                    <p className="text-slate-500 leading-relaxed text-lg">{feature.desc}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="how-it-works" className="py-24 px-8 bg-slate-50 relative">
+                    <div className="max-w-5xl mx-auto">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            className="bg-white rounded-[3rem] p-12 md:p-16 border border-slate-100 card-shadow relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-8 opacity-5 text-blue-600">
+                                <Icons.Sparkles />
+                            </div>
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 text-blue-600 font-bold mb-8">
+                                    <Icons.Sparkles />
+                                    <span>הכירו את המזכיר האישי החדש שלכם</span>
+                                </div>
+                                
+                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-8 leading-tight">
+                                    אז בואו נדבר רגע על הבוט, <br/> הוא ממש גיים צ'יינג'ר.
+                                </h2>
+
+                                <div className="grid md:grid-cols-2 gap-12 items-start mb-12">
+                                    <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
+                                        <p>
+                                            תחשבו על זה כעל עוזר אישי סופר-חכם שמתיישב לכם ישירות על המייל. הוא לומד את כל המידע שאתם נותנים לו – שעות פתיחה, מחירון, תיאורי שירותים – ויודע לענות אוטומטית על שאלות נפוצות שמגיעות אליכם.
+                                        </p>
+                                        <p className="font-bold text-slate-800">
+                                            במילים פשוטות? הוא חוסך לכם טונות של זמן, משחרר אתכם לעסוק במה שחשוב באמת, ודואג שהלקוחות יקבלו מענה 24/7.
+                                        </p>
+                                    </div>
+                                    <div className="bg-blue-50 rounded-3xl p-8 border border-blue-100">
+                                        <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <Icons.Shield />
+                                            מה זה בעצם?
+                                        </h3>
+                                        <p className="text-blue-800/80 mb-4">
+                                            בוט AI שמתלבש על המייל ועונה על בסיס מידע שהגדרתם אישית: קישורים, קבצים ספציפיים ואפילו היסטוריית המייל. 
+                                        </p>
+                                        <p className="text-blue-900 font-medium">
+                                            בונוס: הוא יודע לנתח תמונות, מסמכי PDF וקבצים מצורפים!
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="p-6 bg-white border border-slate-100 rounded-2xl">
+                                        <div className="font-bold text-slate-800 mb-2">התאמה אישית? בטח!</div>
+                                        <p className="text-sm text-slate-500">מתאימים את אופי וסגנון הבוט בדיוק לווייב של העסק שלכם.</p>
+                                    </div>
+                                    <div className="p-6 bg-white border border-slate-100 rounded-2xl">
+                                        <div className="font-bold text-slate-800 mb-2 text-green-600">כמה זה עולה?</div>
+                                        <p className="text-sm text-slate-500">השימוש בבוט חינמי (על בסיס גוגל). התשלום חד-פעמי על ההתקנה וההדרכה שלנו.</p>
+                                    </div>
+                                    <div className="p-6 bg-white border border-slate-100 rounded-2xl">
+                                        <div className="font-bold text-slate-800 mb-2">ומה עם פרטיות?</div>
+                                        <p className="text-sm text-slate-500">יש גרסה חינמית ויש גרסת Pay-as-you-go למידע רגיש במיוחד.</p>
+                                    </div>
+                                </div>
+
+                                <motion.div 
+                                    whileHover={{ x: -10 }}
+                                    className="mt-12 p-6 bg-slate-900 text-white rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                                            <Icons.FileText />
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="font-bold">סקרנים לראות איך זה עובד?</div>
+                                            <div className="text-sm opacity-70">הצצה לקובץ ההגדרות לדוגמה של הבוט</div>
+                                        </div>
+                                    </div>
+                                    <a 
+                                        href="https://docs.google.com/spreadsheets/d/1R3Bnd1Is-oaPF5ujxynvWh4-rSJLJbMaeZVrqYuLojs/edit?usp=sharing" 
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-blue-50 transition-all flex items-center gap-2"
+                                    >
+                                        צפה בדוגמה
+                                        <Icons.ArrowLeft />
+                                    </a>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                <section id="faq" className="py-24 px-8 max-w-4xl mx-auto">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="text-center mb-16"
+                    >
+                        <h2 className="text-4xl font-black text-slate-900 mb-4">שאלות נפוצות</h2>
+                        <p className="text-slate-500 text-lg">כל מה שרציתם לדעת על העוזר החדש שלכם</p>
+                    </motion.div>
+
+                    <div className="space-y-4">
+                        <FAQItem 
+                            question="הערת פרטיות" 
+                            isSpecial={true}
+                            answer="בגרסה החינמית, גוגל שומרת לעצמה את הזכות להשתמש בנתונים לאימון המודלים (דה-פרסונליזציה). אם המידע סודי ביותר (סודות מדינה/רפואי), מומלץ לשקול את הגרסה בתשלום (Pay-as-you-go) שבה אין אימון על המידע."
+                        />
+                        <FAQItem 
+                            question="מה זה הבוט הזה?" 
+                            answer="בוט AI מזכיר אישי על המייל. הבוט עונה אוטומטית, מתבסס על מידע אישי, קישורים וקבצים שהמשתמש הגדיר."
+                        />
+                        <FAQItem 
+                            question="האם זה ChatGPT?" 
+                            answer="לא. הבוט מבוסס על המודלים של גוגל (Gemini) ופועל ישירות בתוך שרתי גוגל, מה שמאפשר לו גישה ישירה למייל ולקבצים בצורה מאובטחת."
+                        />
+                        <FAQItem 
+                            question="האם הבוט קורא תמונות?" 
+                            answer="כן, הבוט יודע לנתח ולקרוא גם תמונות, מסמכי PDF וקבצים מצורפים, לא רק טקסט רגיל."
+                        />
+                        <FAQItem 
+                            question="כמה זה עולה?" 
+                            answer="השימוש בבוט עצמו הוא חינמי לגמרי. התשלום הוא חד-פעמי ורק על ההתקנה וההדרכה שאנחנו נותנים לך."
+                        />
+                    </div>
+                </section>
+
+                <section className="py-32 px-8 relative overflow-hidden text-center">
+                    <motion.h2 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        whileInView={{ scale: 1, opacity: 1 }}
+                        viewport={{ once: true }}
+                        className="text-5xl md:text-6xl font-black mb-10 leading-tight"
+                    >
+                        מוכנים להחזיר לעצמכם <br /> <span className="text-blue-600">שעתיים בכל יום?</span>
+                    </motion.h2>
+                    <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={onGoToContact}
+                        className="bg-blue-600 text-white px-16 py-8 rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all mb-8"
+                    >
+                        התקנה והדרכה עכשיו
+                    </motion.button>
+                </section>
+            </motion.div>
+        );
+
+        const App = () => {
+            const [view, setView] = useState('home');
+
+            useEffect(() => {
+                window.scrollTo(0, 0);
+            }, [view]);
+
+            return (
+                <div className="soft-gradient min-h-screen">
+                    <header className="py-6 px-8 flex justify-between items-center max-w-7xl mx-auto sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100/50">
+                        <motion.div 
+                            onClick={() => setView('home')}
+                            whileHover={{ scale: 1.05 }}
+                            className="flex items-center gap-2 font-black text-2xl text-blue-600 cursor-pointer"
+                        >
+                            <Icons.Sparkles />
+                            <span>EmailBot</span>
+                        </motion.div>
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setView('contact')}
+                            className="bg-white px-6 py-2 rounded-full font-bold text-slate-700 card-shadow border border-slate-100 hover:bg-slate-50 transition-all"
+                        >
+                            צור קשר
+                        </motion.button>
+                    </header>
+
+                    <AnimatePresence mode="wait">
+                        {view === 'home' ? (
+                            <LandingPage key="home" onGoToContact={() => setView('contact')} />
+                        ) : (
+                            <ContactPage key="contact" onBack={() => setView('home')} />
+                        )}
+                    </AnimatePresence>
+
+                    <footer className="py-16 border-t border-slate-100 text-center bg-white">
+                        <div className="flex items-center justify-center gap-2 font-black text-2xl text-blue-600 mb-4">
+                            <Icons.Sparkles />
+                            <span>EmailBot</span>
+                        </div>
+                        <p className="text-slate-400">© 2026 EmailBot - פועל באמצעות Google Gemini</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
